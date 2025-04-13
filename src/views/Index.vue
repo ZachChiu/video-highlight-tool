@@ -1,5 +1,12 @@
 <template>
-  <div class="mb-12">123</div>
+  <div class="">
+    <Upload />
+    <!-- <div>Please Upload Your Video To Get Highlight</div> -->
+  </div>
 </template>
 
-<script setup></script>
+<script setup>
+import Upload from '@/components/Upload.vue'
+</script>
+
+<style scoped lang="scss"></style>
