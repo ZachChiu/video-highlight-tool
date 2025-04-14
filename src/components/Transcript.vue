@@ -1,5 +1,8 @@
 <template>
-  <div class="transcript-container">
+  <div
+    ref="transcriptContainer"
+    class="transcript-container"
+  >
     <h2>Transcript</h2>
     <div
       v-for="(transcript, index) in transcripts"
@@ -10,6 +13,7 @@
         v-for="(item, itemIndex) in transcript?.items || []"
         :item="item"
         :key="item.id"
+        :outerRef="transcriptContainer"
         @onClickItem="onClickItem(index, itemIndex)"
         @onClickSelectTime="onClickSelectTime"
       />
@@ -23,6 +27,7 @@ import TranscriptItem from './TranscriptItem.vue';
 import { useVideoStore } from '@/stores/video.js';
 import { storeToRefs } from 'pinia';
 
+const transcriptContainer = ref(null);
 const videoStore = useVideoStore();
 
 const { videoRef, transcripts } = storeToRefs(videoStore);

@@ -1,6 +1,7 @@
 <template>
   <div
-    class="transcipt-item"
+    ref="transcriptItemRef"
+    class="transcript-item"
     :class="{ selected: item.isSelected, active: isInCurrentTime }"
     @click="onClickItem"
   >
@@ -18,21 +19,49 @@
 import { formatTime } from '@/utils/formatTime.js';
 import { useVideoStore } from '@/stores/video.js';
 import { storeToRefs } from 'pinia';
-import { computed, watch } from 'vue';
+import { computed, onMounted, watch, ref } from 'vue';
 
 const props = defineProps({
   item: {
     type: Object,
     required: true,
   },
+  outerRef: {
+    type: Object,
+    required: true,
+  },
 });
-const videoStore = useVideoStore();
 
+const transcriptItemRef = ref(null);
+const videoStore = useVideoStore();
 const { currentTime } = storeToRefs(videoStore);
 
 const isInCurrentTime = computed(() => {
   return props.item.startTime <= currentTime.value && props.item.endTime >= currentTime.value;
 });
+
+watch(
+  () => isInCurrentTime?.value,
+  () => {
+    if (isInCurrentTime?.value) {
+      const containerRect = props.outerRef.getBoundingClientRect();
+      const itemRect = transcriptItemRef.value.getBoundingClientRect();
+
+      const inView =
+        itemRect.top < containerRect.bottom &&
+        itemRect.bottom > containerRect.top &&
+        itemRect.left < containerRect.right &&
+        itemRect.right > containerRect.left;
+
+      if (!inView) {
+        transcriptItemRef.value.scrollIntoView({
+          behavior: 'smooth',
+          block: 'nearest',
+        });
+      }
+    }
+  },
+);
 
 const emits = defineEmits(['onClickItem', 'onClickSelectTime']);
 
@@ -46,7 +75,7 @@ const onClickSelectTime = () => {
 </script>
 
 <style lang="scss" scoped>
-.transcipt-item {
+.transcript-item {
   display: flex;
   background: white;
   border-radius: var(--border-radius);
