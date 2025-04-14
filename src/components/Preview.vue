@@ -1,63 +1,85 @@
 <template>
   <div class="preview-container">
-    <h2>Preview</h2>
-    <video
-      ref="videoRef"
-      src="../assets/1.mp4"
-      @play="onPlay"
-      @pause="onPause"
-      @ended="onEnded"
-      @loadedmetadata="onLoadedMetadata"
-      @timeupdate="onTimeUpdate"
-    ></video>
+    <div class="title-wrapper">
+      <h2>Preview</h2>
+      <router-link
+        to="/"
+        class="return-link"
+        >Try Another Video</router-link
+      >
+    </div>
+
+    <div class="video-wrapper">
+      <video
+        ref="videoRef"
+        :src="url"
+        @play="onPlay"
+        @pause="onPause"
+        @ended="onEnded"
+        @loadedmetadata="onLoadedMetadata"
+        @timeupdate="onTimeUpdate"
+      ></video>
+      <div class="subtitle-wrapper">
+        <div
+          v-show="selectedSubtitle"
+          class="selected-subtitle"
+        >
+          {{ selectedSubtitle }}
+        </div>
+      </div>
+    </div>
     <ActionBar
-      :isPlaying="isPlaying"
-      :currentTime="currentTime"
       @play="play"
       @pause="pause"
+      @prev="prev"
+      @next="next"
     />
-    <SeekBar
-      :currentTime="currentTime"
-      :duration="duration"
-    />
+    <SeekBar @onClickSelectTime="onClickSelectTime" />
   </div>
 </template>
 
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref, toRaw, watch } from 'vue';
+import { storeToRefs } from 'pinia';
+import { useVideoStore } from '@/stores/video.js';
 
 import SeekBar from './SeekBar.vue';
 import ActionBar from './ActionBar.vue';
 
+const videoStore = useVideoStore();
+
+const { videoRef, url, id, duration, currentTime, selectedTranscriptItems } =
+  storeToRefs(videoStore);
+
+const selectedSubtitle = ref('');
 const transcript = ref([]);
 
-const videoRef = ref(null);
-const videoSrc = 'your-video.mp4';
-
-const isPlaying = ref(false);
-const duration = ref(0); // 總時長
-const currentTime = ref(0); // 目前進度
-
 const onPlay = () => {
-  isPlaying.value = true;
+  videoStore.setIsPlaying(true);
 };
 
 const onPause = () => {
-  isPlaying.value = false;
+  videoStore.setIsPlaying(false);
 };
 
 const onEnded = () => {
-  isPlaying.value = false;
+  videoStore.setIsPlaying(false);
 };
 
 const onLoadedMetadata = () => {
-  duration.value = videoRef.value.duration;
-  videoRef.value.controls = false;
-  isPlaying.value = false;
+  videoStore.setDuration(videoRef.value.duration);
 };
 
 const onTimeUpdate = () => {
-  currentTime.value = videoRef.value.currentTime;
+  videoStore.setCurrentTime(videoRef.value?.currentTime || 0);
+  const selectedIndex = selectedTranscriptItems.value.findIndex(
+    (item) => item.startTime <= currentTime.value && item.endTime >= currentTime.value,
+  );
+  selectedSubtitle.value = selectedTranscriptItems.value[selectedIndex]?.text || '';
+};
+
+const onClickSelectTime = (time) => {
+  videoRef.value.currentTime = time;
 };
 
 const play = () => {
@@ -69,11 +91,23 @@ const pause = () => {
 };
 
 const prev = () => {
-  console.log('prev');
+  let lastSelectedTranscriptItem = {};
+  selectedTranscriptItems.value.forEach((item) => {
+    if (item.startTime < currentTime.value) {
+      lastSelectedTranscriptItem = structuredClone(toRaw(item));
+    }
+  });
+  if (lastSelectedTranscriptItem?.startTime != null) {
+    videoRef.value.currentTime = lastSelectedTranscriptItem.startTime;
+  }
 };
 
 const next = () => {
-  console.log('prev');
+  const nextItem = selectedTranscriptItems.value.find((item) => item.startTime > currentTime.value);
+
+  if (nextItem?.startTime) {
+    videoRef.value.currentTime = nextItem.startTime;
+  }
 };
 </script>
 
@@ -82,12 +116,43 @@ const next = () => {
   padding: 12px 20px;
   background: #1f2937;
   flex: 1;
+  .title-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
   h2 {
     color: white;
-    margin: 0 0 12px;
+    margin: 0;
   }
-  video {
-    width: 100%;
+  .video-wrapper {
+    position: relative;
+    video {
+      width: 100%;
+    }
+    .subtitle-wrapper {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      left: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .selected-subtitle {
+      background: rgba($color: #000000, $alpha: 0.5);
+      color: white;
+      font-size: 20px;
+      padding: 4px;
+      border-radius: var(--border-radius);
+    }
+  }
+  .return-link {
+    display: inline-block;
+    color: white;
+    text-align: right;
+    margin-left: auto;
   }
 }
 </style>

@@ -2,15 +2,16 @@
   <div class="transcript-container">
     <h2>Transcript</h2>
     <div
-      v-for="transcript in transcripts"
-      :key="transcript.section"
+      v-for="(transcript, index) in transcripts"
+      :key="transcript.id"
     >
       <h3>{{ transcript.section }}</h3>
       <TranscriptItem
-        v-for="item in transcript?.items || []"
+        v-for="(item, itemIndex) in transcript?.items || []"
         :item="item"
-        :key="item.time"
-        @onClickItem="onClickItem"
+        :key="item.id"
+        @onClickItem="onClickItem(index, itemIndex)"
+        @onClickSelectTime="onClickSelectTime"
       />
     </div>
   </div>
@@ -19,44 +20,19 @@
 <script setup>
 import { ref } from 'vue';
 import TranscriptItem from './TranscriptItem.vue';
+import { useVideoStore } from '@/stores/video.js';
+import { storeToRefs } from 'pinia';
 
-const transcripts = ref([
-  {
-    section: 'Introduction',
-    items: [
-      { time: '00:00', text: 'Welcome to our product demonstration.', isHighLight: true },
-      { time: '00:05', text: 'Today, we’ll be showcasing our latest innovation.' },
-    ],
-  },
-  {
-    section: 'Key Features',
-    items: [
-      { time: '00:15', text: 'Our product has three main features.' },
-      { time: '00:20', text: 'First, it’s incredibly easy to use.' },
-      { time: '00:25', text: 'Second, it’s highly efficient.' },
-      { time: '00:30', text: 'And third, it’s cost-effective.' },
-    ],
-  },
-  {
-    section: 'Demonstration',
-    items: [
-      { time: '00:40', text: 'Let me show you how it works.' },
-      { time: '00:45', text: 'Simply press this button to start.' },
-      { time: '00:50', text: 'The interface is intuitive and user-friendly.' },
-    ],
-  },
-  {
-    section: 'Conclusion',
-    items: [
-      { time: '01:00', text: 'In conclusion, our product is a game-changer.' },
-      { time: '01:05', text: 'We’re excited to bring this to market.' },
-      { time: '01:10', text: 'Thank you for your attention.' },
-    ],
-  },
-]);
+const videoStore = useVideoStore();
 
-const onClickItem = (item) => {
-  console.log(item);
+const { videoRef, transcripts } = storeToRefs(videoStore);
+
+const onClickItem = (index, itemIndex) => {
+  videoStore.toggleSelectTranscript(index, itemIndex);
+};
+
+const onClickSelectTime = (item) => {
+  videoRef.value.currentTime = item.startTime;
 };
 </script>
 

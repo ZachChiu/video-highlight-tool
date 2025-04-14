@@ -19,17 +19,13 @@ import Prev from './icons/prev.vue';
 import Next from './icons/next.vue';
 import Play from './icons/play.vue';
 import Pause from './icons/pause.vue';
+import { useVideoStore } from '@/stores/video.js';
+import { formatTime } from '@/utils/formatTime.js';
+import { storeToRefs } from 'pinia';
 
-const props = defineProps({
-  isPlaying: {
-    type: Boolean,
-    required: true,
-  },
-  currentTime: {
-    type: Number,
-    required: true,
-  },
-});
+const videoStore = useVideoStore();
+
+const { isPlaying, currentTime } = storeToRefs(videoStore);
 
 const emits = defineEmits(['prev', 'play', 'pause', 'next']);
 const play = () => {
@@ -46,12 +42,6 @@ const prev = () => {
 
 const next = () => {
   emits('next');
-};
-
-const formatTime = (seconds) => {
-  const minutes = Math.floor(seconds / 60);
-  const secs = Math.floor(seconds % 60);
-  return `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 };
 </script>
 

@@ -9,21 +9,48 @@
   >
     <input
       type="file"
-      ref="fileInput"
+      ref="fileInputRef"
       accept="video/*"
       hidden
+      :disabled="isLoading"
       @change="handleFileSelect"
     />
-    <button class="file-input-button">Click To Select</button>
+    <div class="btn-wrapper">
+      <button
+        class="file-input-btn"
+        :disabled="isLoading"
+      >
+        Click To Select
+      </button>
+      <div
+        v-if="isLoading"
+        class="loading-wrapper"
+      >
+        <Loading class="loading" />
+      </div>
+      <p
+        v-if="isError"
+        class="error-text"
+      >
+        Error, Please try again
+      </p>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue';
+import { useVideoStore } from '@/stores/video.js';
+import Loading from '@/components/icons/loading.vue';
 
+const videoStore = useVideoStore();
+
+const isLoading = ref(false);
+const isError = ref(false);
 const isDragOver = ref(false);
-const fileName = ref(null);
-const fileInput = ref(null);
+const fileInputRef = ref(null);
+
+const emit = defineEmits(['success']);
 
 const handleDragOver = () => {
   isDragOver.value = true;
@@ -33,23 +60,39 @@ const handleDragLeave = () => {
   isDragOver.value = false;
 };
 
-const handleDrop = (event) => {
+const triggerFileInput = () => {
+  fileInputRef.value.click();
+};
+
+const handleDrop = async (event) => {
   const file = event.dataTransfer.files[0];
   if (file) {
-    fileName.value = file.name;
+    await uploadFile(file);
   }
   isDragOver.value = false;
 };
 
-const handleFileSelect = (event) => {
+const handleFileSelect = async (event) => {
   const file = event.target.files[0];
   if (file) {
-    fileName.value = file.name;
+    await uploadFile(file);
   }
 };
 
-const triggerFileInput = () => {
-  fileInput.value.click();
+const uploadFile = async (file) => {
+  try {
+    if (isLoading.value) {
+      return;
+    }
+    isError.value = false;
+    isLoading.value = true;
+    await videoStore.processVideo(file);
+    emit('success');
+  } catch (error) {
+    isError.value = true;
+  } finally {
+    isLoading.value = false;
+  }
 };
 </script>
 
@@ -68,19 +111,69 @@ const triggerFileInput = () => {
   justify-content: center;
   cursor: pointer;
   &.is-dragover {
-    border-color: #4caf50;
+    border-color: var(--primary-color);
+  }
+
+  .btn-wrapper {
+    width: 180px;
+    border-radius: var(--border-radius);
+    position: relative;
+    overflow: hidden;
+
+    .loading-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: absolute;
+      background: var(--primary-color);
+      top: 0;
+      bottom: 0;
+      right: 0;
+      left: 0;
+    }
+    .loading {
+      width: 30px;
+      height: 30px;
+      color: white;
+      animation: spin 1.5s linear infinite;
+    }
+
+    .error-text {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      transform: translateY(150%);
+      transition: all 0.3s;
+      color: var(--danger-color);
+      text-align: center;
+      margin: 0;
+      @starting-style {
+        transform: translateY(0);
+        opacity: 0;
+      }
+    }
+  }
+
+  .file-input-btn {
+    width: 100%;
+    padding: 20px 0;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    cursor: pointer;
+    &:hover {
+      background-color: #0056b3;
+    }
   }
 }
 
-.file-input-button {
-  padding: 20px 40px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  cursor: pointer;
-  border-radius: var(--border-radius);
-  &:hover {
-    background-color: #0056b3;
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
   }
 }
 </style>

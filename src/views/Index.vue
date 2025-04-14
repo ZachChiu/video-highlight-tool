@@ -1,12 +1,17 @@
 <template>
   <div class="">
-    <Upload />
-    <!-- <div>Please Upload Your Video To Get Highlight</div> -->
+    <Upload @success="uploadSuccess" />
   </div>
 </template>
 
 <script setup>
-import Upload from '@/components/Upload.vue'
+import Upload from '@/components/Upload.vue';
+import { useRouter } from 'vue-router';
+const router = useRouter();
+
+const uploadSuccess = () => {
+  router.push({ name: 'high-light' });
+};
 </script>
 
 <style scoped lang="scss"></style>

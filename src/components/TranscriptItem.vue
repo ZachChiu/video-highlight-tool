@@ -1,25 +1,47 @@
 <template>
   <div
     class="transcipt-item"
-    :class="{ 'high-light': item.isHighLight }"
+    :class="{ selected: item.isSelected, active: isInCurrentTime }"
     @click="onClickItem"
   >
-    <p class="time">{{ item.time }}</p>
+    <p
+      class="time"
+      @click.stop="onClickSelectTime"
+    >
+      {{ formatTime(item.startTime) }}
+    </p>
     <p class="text">{{ item.text }}</p>
   </div>
 </template>
 
 <script setup>
+import { formatTime } from '@/utils/formatTime.js';
+import { useVideoStore } from '@/stores/video.js';
+import { storeToRefs } from 'pinia';
+import { computed, watch } from 'vue';
+
 const props = defineProps({
   item: {
     type: Object,
     required: true,
   },
 });
+const videoStore = useVideoStore();
 
-const emits = defineEmits(['onClickItem']);
+const { currentTime } = storeToRefs(videoStore);
+
+const isInCurrentTime = computed(() => {
+  return props.item.startTime <= currentTime.value && props.item.endTime >= currentTime.value;
+});
+
+const emits = defineEmits(['onClickItem', 'onClickSelectTime']);
+
 const onClickItem = () => {
-  emits('onClickItem', props.item);
+  emits('onClickItem');
+};
+
+const onClickSelectTime = () => {
+  emits('onClickSelectTime', props.item);
 };
 </script>
 
@@ -30,13 +52,18 @@ const onClickItem = () => {
   border-radius: var(--border-radius);
   padding: 12px;
   column-gap: 8px;
+  border: 2px solid transparent;
+  transition: all 0.3s;
   cursor: pointer;
-  &.high-light {
+  &.selected {
     background: var(--primary-color);
     .time,
     .text {
       color: white;
     }
+  }
+  &.active {
+    border-color: #f9cc15;
   }
   &:not(:last-child) {
     margin-bottom: 12px;
@@ -50,7 +77,6 @@ const onClickItem = () => {
 
   .text {
     margin: 0;
-
     width: 20em;
     white-space: nowrap;
     text-overflow: ellipsis;

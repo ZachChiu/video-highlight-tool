@@ -1,5 +1,7 @@
 <template>
-  <div class="high-light-container">
+  <div
+    class="high-light-container"
+  >
     <Transcript />
     <Preview />
   </div>
@@ -8,6 +10,21 @@
 <script setup>
 import Preview from '@/components/Preview.vue';
 import Transcript from '@/components/Transcript.vue';
+import { useVideoStore } from '@/stores/video.js';
+import { storeToRefs } from 'pinia';
+import { onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+
+const videoStore = useVideoStore();
+const router = useRouter();
+
+const { id } = storeToRefs(videoStore);
+
+onMounted(() => {
+  if (!id?.value) {
+    router.push({ name: 'home' });
+  }
+});
 </script>
 
 <style lang="scss" scoped>
