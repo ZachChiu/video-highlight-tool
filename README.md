@@ -1,35 +1,25 @@
 # video-highlight-tool
 
-This template should help get you started developing with Vue 3 in Vite.
+### 技術使用
+Vue3：框架
 
-## Recommended IDE Setup
+Pinia：全域資料傳遞
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+uuid：製作唯獨 id
 
-## Customize configuration
+### 程式結構
+分成 Transcript 與 Preview，並再細分 TranscriptItem、Upload、SeekBar、ActionBar 等元件出來做處理
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+方便各元件各司其職
 
-## Project Setup
+### API
+分成兩隻是希望提高 Api 的覆用性
 
-```sh
-npm install
-```
+### 部屬
+使用 netlify 做快速部屬
+[video-highlight-tool
+](https://video-highlight-tool.netlify.app/)
 
-### Compile and Hot-Reload for Development
-
-```sh
-npm run dev
-```
-
-### Compile and Minify for Production
-
-```sh
-npm run build
-```
-
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-npm run lint
-```
+### 使用
+建議使用一分鐘的影片
+因為 Api 回傳 transcripts 的資料是固定的
