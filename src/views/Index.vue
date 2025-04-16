@@ -13,5 +13,3 @@ const uploadSuccess = () => {
   router.push({ name: 'high-light' });
 };
 </script>
-
-<style scoped lang="scss"></style>

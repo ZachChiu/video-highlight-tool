@@ -12,6 +12,8 @@
     <div class="video-wrapper">
       <video
         ref="videoRef"
+        playsinline
+        webkit-playsinline
         :src="url"
         @play="onPlay"
         @pause="onPause"
@@ -116,6 +118,7 @@ const next = () => {
   padding: 12px 20px;
   background: #1f2937;
   flex: 1;
+  overflow: auto;
   .title-wrapper {
     display: flex;
     justify-content: space-between;
